@@ -12,15 +12,46 @@ const sampleProducts = [
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState(sampleProducts);
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedRating, setSelectedRating] = useState(0);
+
+  const brands = ["Apple", "Samsung", "Sony", "LG"];
+  const ratings = [1, 2, 3, 4, 5];
 
   const handleSearchChange = (event) => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
+    filterProducts(query, priceRange, selectedBrand, selectedRating);
+  };
+
+  const filterProducts = (query, priceRange, brand, rating) => {
     setFilteredProducts(
-      sampleProducts.filter(product =>
-        product.name.toLowerCase().includes(query)
-      )
+      sampleProducts.filter(product => {
+        const matchesQuery = product.name.toLowerCase().includes(query);
+        const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
+        const matchesBrand = brand ? product.brand === brand : true;
+        const matchesRating = rating ? product.rating >= rating : true;
+        return matchesQuery && matchesPrice && matchesBrand && matchesRating;
+      })
     );
+  };
+
+  const handlePriceRangeChange = (range) => {
+    setPriceRange(range);
+    filterProducts(searchQuery, range, selectedBrand, selectedRating);
+  };
+
+  const handleBrandChange = (event) => {
+    const brand = event.target.value;
+    setSelectedBrand(brand);
+    filterProducts(searchQuery, priceRange, brand, selectedRating);
+  };
+
+  const handleRatingChange = (event) => {
+    const rating = parseInt(event.target.value);
+    setSelectedRating(rating);
+    filterProducts(searchQuery, priceRange, selectedBrand, rating);
   };
 
   return (
@@ -54,6 +85,24 @@ const Index = () => {
       {/* Products Section */}
       <Box py={10}>
         <Heading size="lg" textAlign="center" mb={6}>Featured Products</Heading>
+        <Flex justifyContent="space-between" mb={6}>
+          <Box>
+            <Text>Price Range</Text>
+            <Input type="range" min="0" max="1000" value={priceRange} onChange={(e) => handlePriceRangeChange([0, e.target.value])} />
+          </Box>
+          <Box>
+            <Text>Brand</Text>
+            <Select placeholder="Select brand" onChange={handleBrandChange}>
+              {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
+            </Select>
+          </Box>
+          <Box>
+            <Text>Rating</Text>
+            <Select placeholder="Select rating" onChange={handleRatingChange}>
+              {ratings.map(rating => <option key={rating} value={rating}>{rating} & up</option>)}
+            </Select>
+          </Box>
+        </Flex>
         <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={10}>
           {filteredProducts.map(product => (
             <Box key={product.id} borderWidth="1px" borderRadius="lg" overflow="hidden" p={4}>
